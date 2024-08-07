@@ -7,12 +7,10 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.label import Label 
 from kivy.uix.checkbox import CheckBox 
 from kivy.uix.spinner import Spinner 
-from kivy.uix.datepicker import DatePicker 
- 
-if not os.path.exists('data'): 
-    os.makedirs('data') 
+from kivymd.uix.pickers import MDDatePicker 
  
 class Task: 
+ 
     def __init__(self, name, category='', due_date='', priority='Low', completed=False): 
         self.name = name 
         self.category = category 
@@ -30,18 +28,19 @@ class Task:
         } 
  
 class TaskTrackerApp(App): 
+ 
     def build(self): 
         self.tasks = self.load_tasks() 
         layout = BoxLayout(orientation='vertical') 
         self.task_input = TextInput(hint_text='Enter task', size_hint_y=None, height=40) 
         self.category_spinner = Spinner(text='Select Category', values=('Work', 'Personal', 'Other'), size_hint_y=None, height=40) 
-        self.due_date_picker = DatePicker(hint_text='Select Due Date', size_hint_y=None, height=40) 
+        self.due_date_input = TextInput(hint_text='Enter Due Date', size_hint_y=None, height=40) 
         self.priority_spinner = Spinner(text='Priority', values=('Low', 'Medium', 'High'), size_hint_y=None, height=40) 
         add_task_btn = Button(text='Add Task', size_hint_y=None, height=40) 
         add_task_btn.bind(on_press=self.add_task) 
         layout.add_widget(self.task_input) 
         layout.add_widget(self.category_spinner) 
-        layout.add_widget(self.due_date_picker) 
+        layout.add_widget(self.due_date_input) 
         layout.add_widget(self.priority_spinner) 
         layout.add_widget(add_task_btn) 
         self.task_list = BoxLayout(orientation='vertical', size_hint_y=None) 
@@ -66,7 +65,7 @@ class TaskTrackerApp(App):
             task = Task( 
                 name=task_name, 
                 category=self.category_spinner.text, 
-                due_date=self.due_date_picker.text, 
+                due_date=self.due_date_input.text, 
                 priority=self.priority_spinner.text 
             ) 
             self.tasks.append(task) 
