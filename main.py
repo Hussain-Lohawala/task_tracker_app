@@ -1,69 +1,92 @@
+import json 
+import os 
 from kivy.app import App 
 from kivy.uix.boxlayout import BoxLayout 
-from kivy.uix.label import Label 
-from kivy.uix.textinput import TextInput 
 from kivy.uix.button import Button 
-from kivy.uix.scrollview import ScrollView 
+from kivy.uix.textinput import TextInput 
+from kivy.uix.label import Label 
+from kivy.uix.checkbox import CheckBox 
+from kivy.uix.spinner import Spinner 
+from kivy.uix.datepicker import DatePicker 
+ 
+if not os.path.exists('data'): 
+    os.makedirs('data') 
+ 
+class Task: 
+    def __init__(self, name, category='', due_date='', priority='Low', completed=False): 
+        self.name = name 
+        self.category = category 
+        self.due_date = due_date 
+        self.priority = priority 
+        self.completed = completed 
+ 
+    def to_dict(self): 
+        return { 
+            'name': self.name, 
+            'category': self.category, 
+            'due_date': self.due_date, 
+            'priority': self.priority, 
+            'completed': self.completed 
+        } 
  
 class TaskTrackerApp(App): 
     def build(self): 
         self.tasks = self.load_tasks() 
-        self.layout = BoxLayout(orientation='vertical') 
- 
-        self.task_input = TextInput(hint_text='Enter a task', size_hint=(1, 0.1)) 
-        self.layout.add_widget(self.task_input) 
- 
-        self.add_task_button = Button(text='Add Task', size_hint=(1, 0.1)) 
-        self.add_task_button.bind(on_press=self.add_task) 
-        self.layout.add_widget(self.add_task_button) 
- 
-        self.task_list_layout = BoxLayout(orientation='vertical', size_hint=(1, 0.8)) 
- 
-        self.scroll_view = ScrollView(size_hint=(1, 0.8)) 
-        self.scroll_view.add_widget(self.task_list_layout) 
-        self.layout.add_widget(self.scroll_view) 
- 
-        self.display_tasks() 
- 
-        return self.layout 
- 
-    def add_task(self, instance): 
-        task_text = self.task_input.text 
-        if task_text: 
-            self.tasks.append(task_text) 
-            self.task_input.text = '' 
-            self.save_tasks() 
-            self.display_tasks() 
- 
-    def delete_task(self, task_label): 
-        task_text = task_label.text 
-        if task_text in self.tasks: 
-            self.tasks.remove(task_text) 
-            self.save_tasks() 
-            self.display_tasks() 
- 
-    def display_tasks(self): 
-        self.task_list_layout.clear_widgets() 
-        for task in self.tasks: 
-            task_label = Label(text=task, size_hint=(1, None), height=40) 
-            delete_button = Button(text='Delete', size_hint=(0.2, 1)) 
-            delete_button.bind(on_press=lambda instance, task_label=task_label: self.delete_task(task_label)) 
- 
-            task_layout = BoxLayout(size_hint=(1, None), height=40) 
-            task_layout.add_widget(task_label) 
-            task_layout.add_widget(delete_button) 
- 
-            self.task_list_layout.add_widget(task_layout) 
+        layout = BoxLayout(orientation='vertical') 
+        self.task_input = TextInput(hint_text='Enter task', size_hint_y=None, height=40) 
+        self.category_spinner = Spinner(text='Select Category', values=('Work', 'Personal', 'Other'), size_hint_y=None, height=40) 
+        self.due_date_picker = DatePicker(hint_text='Select Due Date', size_hint_y=None, height=40) 
+        self.priority_spinner = Spinner(text='Priority', values=('Low', 'Medium', 'High'), size_hint_y=None, height=40) 
+        add_task_btn = Button(text='Add Task', size_hint_y=None, height=40) 
+        add_task_btn.bind(on_press=self.add_task) 
+        layout.add_widget(self.task_input) 
+        layout.add_widget(self.category_spinner) 
+        layout.add_widget(self.due_date_picker) 
+        layout.add_widget(self.priority_spinner) 
+        layout.add_widget(add_task_btn) 
+        self.task_list = BoxLayout(orientation='vertical', size_hint_y=None) 
+        layout.add_widget(self.task_list) 
+        self.update_task_list() 
+        return layout 
  
     def load_tasks(self): 
         if os.path.exists('data/tasks.json'): 
             with open('data/tasks.json', 'r') as file: 
-                return json.load(file) 
+                tasks_data = json.load(file) 
+                return [Task(**task) for task in tasks_data] 
         return [] 
  
     def save_tasks(self): 
         with open('data/tasks.json', 'w') as file: 
-            json.dump(self.tasks, file) 
+            json.dump([task.to_dict() for task in self.tasks], file) 
  
-if __name__ == "__main__": 
+    def add_task(self, instance): 
+        task_name = self.task_input.text 
+        if task_name: 
+            task = Task( 
+                name=task_name, 
+                category=self.category_spinner.text, 
+                due_date=self.due_date_picker.text, 
+                priority=self.priority_spinner.text 
+            ) 
+            self.tasks.append(task) 
+            self.save_tasks() 
+            self.task_input.text = '' 
+            self.update_task_list() 
+ 
+    def update_task_list(self): 
+        self.task_list.clear_widgets() 
+        for task in self.tasks: 
+            task_label = Label(text=f"{task.name} - {task.category} - {task.due_date} - {task.priority}") 
+            completed_checkbox = CheckBox(active=task.completed) 
+            completed_checkbox.bind(active=lambda checkbox, value: self.toggle_task_completion(task)) 
+            self.task_list.add_widget(task_label) 
+            self.task_list.add_widget(completed_checkbox) 
+ 
+    def toggle_task_completion(self, task): 
+        task.completed = not task.completed 
+        self.save_tasks() 
+        self.update_task_list() 
+ 
+if __name__ == '__main__': 
     TaskTrackerApp().run() 
