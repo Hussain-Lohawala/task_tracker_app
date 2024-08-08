@@ -87,7 +87,7 @@ class TaskTrackerApp(App):
 if __name__ == '__main__': 
     TaskTrackerApp().run() 
 from kivymd.uix.pickers import MDDatePicker 
-        self.due_date_input = TextInput(hint_text='Enter Due Date', size_hint_y=None, height=40) 
+            self.due_date_input = TextInput(hint_text='Enter Due Date', size_hint_y=None, height=40) 
         date_picker_btn = Button(text='Pick Due Date', size_hint_y=None, height=40) 
         date_picker_btn.bind(on_press=self.open_date_picker) 
         layout.add_widget(date_picker_btn) 
@@ -96,4 +96,4 @@ from kivymd.uix.pickers import MDDatePicker
         date_picker.bind(on_save=self.set_due_date) 
         date_picker.open() 
     def set_due_date(self, instance, value, *args): 
-        self.due_date_input.text = value.strftime('m-d') 
+            self.due_date_input.text = value.strftime('m-d') 
