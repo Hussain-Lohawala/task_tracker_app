@@ -7,7 +7,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.label import Label 
 from kivy.uix.checkbox import CheckBox 
 from kivy.uix.spinner import Spinner 
-from kivymd.uix.pickers import MDDatePicker 
+from kivymd.uix.pickers import MDDatePicker
  
 class Task: 
  
@@ -34,13 +34,11 @@ class TaskTrackerApp(App):
         layout = BoxLayout(orientation='vertical') 
         self.task_input = TextInput(hint_text='Enter task', size_hint_y=None, height=40) 
         self.category_spinner = Spinner(text='Select Category', values=('Work', 'Personal', 'Other'), size_hint_y=None, height=40) 
-        self.due_date_input = TextInput(hint_text='Enter Due Date', size_hint_y=None, height=40) 
         self.priority_spinner = Spinner(text='Priority', values=('Low', 'Medium', 'High'), size_hint_y=None, height=40) 
         add_task_btn = Button(text='Add Task', size_hint_y=None, height=40) 
         add_task_btn.bind(on_press=self.add_task) 
         layout.add_widget(self.task_input) 
         layout.add_widget(self.category_spinner) 
-        layout.add_widget(self.due_date_input) 
         layout.add_widget(self.priority_spinner) 
         layout.add_widget(add_task_btn) 
         self.task_list = BoxLayout(orientation='vertical', size_hint_y=None) 
@@ -65,7 +63,6 @@ class TaskTrackerApp(App):
             task = Task( 
                 name=task_name, 
                 category=self.category_spinner.text, 
-                due_date=self.due_date_input.text, 
                 priority=self.priority_spinner.text 
             ) 
             self.tasks.append(task) 
@@ -89,3 +86,14 @@ class TaskTrackerApp(App):
  
 if __name__ == '__main__': 
     TaskTrackerApp().run() 
+from kivymd.uix.pickers import MDDatePicker 
+        self.due_date_input = TextInput(hint_text='Enter Due Date', size_hint_y=None, height=40) 
+        date_picker_btn = Button(text='Pick Due Date', size_hint_y=None, height=40) 
+        date_picker_btn.bind(on_press=self.open_date_picker) 
+        layout.add_widget(date_picker_btn) 
+    def open_date_picker(self, instance): 
+        date_picker = MDDatePicker() 
+        date_picker.bind(on_save=self.set_due_date) 
+        date_picker.open() 
+    def set_due_date(self, instance, value, *args): 
+        self.due_date_input.text = value.strftime('m-d') 
